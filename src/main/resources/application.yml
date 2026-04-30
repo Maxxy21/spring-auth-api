@@ -10,7 +10,6 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   flyway:
     enabled: true
@@ -29,7 +28,7 @@ spring:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:change-this-in-production-must-be-at-least-32-chars-long}
+    secret: ${JWT_SECRET}
     access-token-expiration: 900000       # 15 minutes in ms
     refresh-token-expiration: 604800000   # 7 days in ms
   email:
@@ -50,5 +49,5 @@ server:
 
 logging:
   level:
-    com.maxwell: DEBUG
+    com.maxwell: INFO
     org.springframework.security: INFO

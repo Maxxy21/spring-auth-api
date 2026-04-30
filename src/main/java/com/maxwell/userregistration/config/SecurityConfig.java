@@ -37,7 +37,7 @@ public class SecurityConfig {
                             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             res.setContentType(MediaType.APPLICATION_JSON_VALUE);
                             res.getWriter().write(
-                                    "{\"title\":\"Unauthorized\",\"detail\":\"" + e.getMessage() + "\"}"
+                                    "{\"title\":\"Unauthorized\",\"detail\":\"Full authentication is required\"}"
                             );
                         })
                         .accessDeniedHandler((req, res, e) -> {

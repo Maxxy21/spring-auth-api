@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -42,8 +43,8 @@ public class CaptchaService {
         params.add("response", token);
 
         try {
-            ResponseEntity<Map> response = restTemplate.postForEntity(
-                    verifyUrl, new HttpEntity<>(params), Map.class
+            ResponseEntity<Map<String, Object>> response = restTemplate.postForEntity(
+                    verifyUrl, new HttpEntity<>(params), (Class<Map<String, Object>>) (Class<?>) Map.class
             );
             if (response.getBody() == null || !Boolean.TRUE.equals(response.getBody().get("success"))) {
                 throw new InvalidCaptchaException("CAPTCHA verification failed");

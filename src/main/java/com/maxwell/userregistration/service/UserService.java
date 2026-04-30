@@ -87,18 +87,14 @@ public class UserService {
 
     @Transactional
     public void resendVerificationEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new InvalidTokenException("No account found with that email"));
-
-        if (user.isEnabled()) {
-            throw new InvalidTokenException("Email is already verified");
-        }
-
-        // Invalidate previous tokens
-        evtRepository.deleteByUser(user);
-
-        String token = createEmailVerificationToken(user);
-        emailService.sendVerificationEmail(user, token);
+        // Silent return — never reveal whether an email is registered or already verified
+        userRepository.findByEmail(email)
+                .filter(u -> !u.isEnabled())
+                .ifPresent(user -> {
+                    evtRepository.deleteByUser(user);
+                    String token = createEmailVerificationToken(user);
+                    emailService.sendVerificationEmail(user, token);
+                });
     }
 
     @Transactional
@@ -155,7 +151,7 @@ public class UserService {
         return issueTokenPair(user);
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = InvalidTokenException.class)
     public AuthResponse refreshToken(TokenRefreshRequest request) {
         RefreshToken stored = refreshTokenRepository.findByToken(request.refreshToken())
                 .orElseThrow(() -> new InvalidTokenException("Refresh token not found"));
@@ -187,10 +183,10 @@ public class UserService {
     @Transactional
     public MfaSetupResponse setupMfa(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
 
         if (user.isMfaEnabled()) {
-            throw new IllegalStateException("MFA is already enabled. Disable it first.");
+            throw new InvalidTokenException("MFA is already enabled. Disable it first.");
         }
 
         String secret = mfaService.generateSecret();
@@ -204,7 +200,7 @@ public class UserService {
     @Transactional
     public void enableMfa(String email, String totpCode) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
 
         if (user.getMfaSecret() == null) {
             throw new InvalidTokenException("Call /api/users/mfa/setup first");
@@ -220,10 +216,10 @@ public class UserService {
     @Transactional
     public void disableMfa(String email, String totpCode) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
 
         if (!user.isMfaEnabled()) {
-            throw new IllegalStateException("MFA is not enabled");
+            throw new InvalidTokenException("MFA is not enabled");
         }
         if (!mfaService.verifyCode(user.getMfaSecret(), Integer.parseInt(totpCode))) {
             throw new InvalidTokenException("Invalid TOTP code");
@@ -236,7 +232,7 @@ public class UserService {
 
     public UserProfileResponse getProfile(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
         return UserProfileResponse.from(user);
     }
 

@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -38,7 +39,8 @@ public class BruteForceProtectionService {
         });
     }
 
-    @Transactional
+    // REQUIRES_NEW so this commits even when the caller's transaction rolls back
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void recordFailedAttempt(String identifier) {
         LoginAttempt attempt = loginAttemptRepository.findByIdentifier(identifier)
                 .orElseGet(() -> LoginAttempt.builder()
