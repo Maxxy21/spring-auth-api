@@ -1,6 +1,6 @@
 # Spring Auth API
 
-A secure user registration and authentication backend built with Java 17 and Spring Boot 3.
+A secure user registration and authentication backend built with Java and Spring Boot .
 
 ## Features
 
